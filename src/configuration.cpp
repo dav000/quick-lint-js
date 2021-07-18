@@ -180,6 +180,10 @@ void configuration::remove_global_variable(string8_view name) {
 }
 
 void configuration::load_from_json(padded_string_view json) {
+  // TODO(strager): Avoid copying the string.
+  this->loaded_json_.emplace(json.string_view());
+  json = &*this->loaded_json_;
+
   ::simdjson::ondemand::parser json_parser;
   ::simdjson::ondemand::document document;
   ::simdjson::error_code parse_error =
@@ -253,8 +257,19 @@ void configuration::set_config_file_path(const canonical_path& path) {
   this->config_file_path_ = path;
 }
 
+std::optional<padded_string_view> configuration::loaded_json() const noexcept {
+  return this->loaded_json_.has_value()
+             ? std::optional<padded_string_view>(&*this->loaded_json_)
+             : std::nullopt;
+}
+
 void configuration::report_errors(error_reporter* reporter) {
   this->errors_.copy_into(reporter);
+  this->errors_were_reported_ = true;
+}
+
+bool configuration::errors_were_reported() const noexcept {
+  return this->errors_were_reported_;
 }
 
 void configuration::reset() {

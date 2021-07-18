@@ -33,7 +33,9 @@ class configuration {
   void set_config_file_path(const canonical_path&);
   void set_config_file_path(canonical_path&&);
 
+  std::optional<padded_string_view> loaded_json() const noexcept;
   void report_errors(error_reporter*);
+  bool errors_were_reported() const noexcept;
 
   void reset();
 
@@ -59,6 +61,8 @@ class configuration {
   bool add_global_group_ecmascript_ = true;
   monotonic_allocator string_allocator_;
   buffering_error_reporter errors_;
+  bool errors_were_reported_ = false;
+  std::optional<padded_string> loaded_json_;
 
   string8_view save_string(std::string_view s);
 };
